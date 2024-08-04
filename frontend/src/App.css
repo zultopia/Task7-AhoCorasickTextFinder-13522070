@@ -63,6 +63,12 @@ body {
 .results-section {
   margin: 20px auto;
   width: 100%;
+  text-align: center; 
+}
+
+.highlighted-text {
+  text-align: center;
+  overflow-wrap: break-word; 
 }
 
 .highlighted-text mark {
@@ -75,4 +81,10 @@ body {
   height: auto;
   display: block;
   margin: 0 auto 20px;
+}
+
+.error-message {
+  color: red;
+  font-weight: bold;
+  margin: 20px 0;
 }

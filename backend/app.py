@@ -60,6 +60,11 @@ app = Flask(__name__)
 CORS(app)
 
 def aho_corasick_search(text, patterns):
+    if not text:
+        return ["Text Kosong. Solusi tidak ada"], {}
+    if not patterns:
+        return ["Tidak ada pattern. Solusi tidak ada"], {}
+
     automaton = AhoCorasick()
     for idx, pattern in enumerate(patterns):
         automaton.add_word(pattern.lower(), idx)
@@ -84,8 +89,18 @@ def aho_corasick_search(text, patterns):
 @app.route('/search', methods=['POST'])
 def search():
     data = request.json
-    text = data['text']
-    patterns = data['patterns']
+    text = data.get('text', '')
+    patterns = data.get('patterns', [])
+
+    if not text:
+        return jsonify({
+            'error': "Text Kosong. Solusi tidak ada"
+        }), 400
+
+    if not patterns:
+        return jsonify({
+            'error': "Tidak ada pattern. Solusi tidak ada"
+        }), 400
 
     result_strings, highlights = aho_corasick_search(text, patterns)
 

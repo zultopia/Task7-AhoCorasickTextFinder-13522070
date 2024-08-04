@@ -53,7 +53,6 @@ class AhoCorasick:
                 results.append((pattern_idx, i))
         return results
 
-# Integrating AhoCorasick with Flask backend
 from flask import Flask, request, jsonify # type: ignore
 from flask_cors import CORS # type: ignore
 
@@ -78,7 +77,7 @@ def aho_corasick_search(text, patterns):
             highlights[pattern].append((start_index, end_index))
 
     result_strings = [f'Pola "{pattern}" ditemukan {count}x, ditemukan pada indeks {highlights[pattern]}.' 
-                      for pattern, count in results.items() if count > 0]
+                      for pattern, count in results.items()]
     
     return result_strings, highlights
 

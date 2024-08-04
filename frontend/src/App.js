@@ -57,21 +57,23 @@ const App = () => {
 
     return (
         <div className="App">
-            <img src={ahoLogo} alt="Aho-Corasick Logo" className="logo" />
-            <h1 style={{ fontStyle: 'italic' }}>Find Your Pattern in Text</h1>
-            <div className="upload-section">
-                <input type="file" onChange={handleFileChange} />
-                <button className="submit-button" onClick={handleSubmit}>Find</button>
-            </div>
-            <div className="results-section">
-                <h2>Solusi</h2>
-                <div>
-                    {results.map((result, index) => (
-                        <div key={index}>{result}</div>
-                    ))}
+            <div className="container">
+                <img src={ahoLogo} alt="Aho-Corasick Logo" className="logo" />
+                <h1 style={{ fontStyle: 'italic' }}>Find Your Pattern in Text</h1>
+                <div className="upload-section">
+                    <input type="file" onChange={handleFileChange} />
+                    <button className="submit-button" onClick={handleSubmit}>Find</button>
                 </div>
-                <h2>Highlight Pola</h2>
-                <div className="highlighted-text" dangerouslySetInnerHTML={{ __html: highlightedText }}></div>
+                <div className="results-section">
+                    <h2>Hasil Pencarian</h2>
+                    <div>
+                        {results.map((result, index) => (
+                            <div key={index}>{result}</div>
+                        ))}
+                    </div>
+                    <h2>Teks dengan Highlight</h2>
+                    <div className="highlighted-text" dangerouslySetInnerHTML={{ __html: highlightedText }}></div>
+                </div>
             </div>
         </div>
     );

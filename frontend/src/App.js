@@ -61,7 +61,7 @@ const App = () => {
                         setAutomatonData(automaton);
                     }
                 } catch (error) {
-                    setError("Solusi tidak ditemukan antara text kosong atau pattern tidak ada");
+                    setError("Solusi tidak ditemukan. Penyebabnya antara text kosong atau pattern tidak ada");
                     setResults([]);
                     setHighlightedText("");
                     setAutomatonData(null);
@@ -74,54 +74,54 @@ const App = () => {
     useEffect(() => {
         if (automatonData) {
             const svg = d3.select(svgRef.current);
-            svg.selectAll("*").remove(); // Clear previous visualization
-
+            svg.selectAll("*").remove();
+    
             const width = svgRef.current.clientWidth;
             const height = svgRef.current.clientHeight;
-
+    
             const simulation = d3.forceSimulation()
                 .force("link", d3.forceLink().id(d => d.id))
                 .force("charge", d3.forceManyBody())
                 .force("center", d3.forceCenter(width / 2, height / 2));
-
+    
             const link = svg.selectAll("line")
                 .data(automatonData.links)
                 .enter().append("line")
                 .attr("stroke", "#999")
                 .attr("stroke-width", 2);
-
+    
             const node = svg.selectAll("circle")
                 .data(automatonData.nodes)
                 .enter().append("circle")
                 .attr("r", 10)
                 .attr("fill", "#1f77b4")
                 .call(drag(simulation));
-
+    
             const label = svg.selectAll("text")
                 .data(automatonData.nodes)
                 .enter().append("text")
                 .attr("dy", 3)
-                .text(d => d.id);
-
+                .text(d => d.pattern);  
+    
             simulation.nodes(automatonData.nodes).on("tick", () => {
                 link
                     .attr("x1", d => d.source.x)
                     .attr("y1", d => d.source.y)
                     .attr("x2", d => d.target.x)
                     .attr("y2", d => d.target.y);
-
+    
                 node
                     .attr("cx", d => d.x)
                     .attr("cy", d => d.y);
-
+    
                 label
                     .attr("x", d => d.x)
                     .attr("y", d => d.y);
             });
-
+    
             simulation.force("link").links(automatonData.links);
         }
-    }, [automatonData]);
+    }, [automatonData]);  
 
     const drag = (simulation) => {
         return d3.drag()

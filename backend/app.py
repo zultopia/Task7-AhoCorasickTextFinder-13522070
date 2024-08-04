@@ -11,6 +11,7 @@ class AhoCorasick:
         self.edges = [{}]
         self.fail = [-1]
         self.output = [[]]
+        self.patterns = [""]
 
     def add_word(self, word, idx):
         current_node = 0
@@ -20,6 +21,7 @@ class AhoCorasick:
                 self.edges.append({})
                 self.fail.append(-1)
                 self.output.append([])
+                self.patterns.append(word[:len(self.patterns[current_node])+1]) 
                 self.num_nodes += 1
             current_node = self.edges[current_node][char]
         self.output[current_node].append(idx)
@@ -60,11 +62,11 @@ class AhoCorasick:
         return results
 
     def get_automaton_data(self):
-        nodes = [{"id": i} for i in range(self.num_nodes)]
+        nodes = [{"id": i, "pattern": self.patterns[i]} for i in range(self.num_nodes)]
         links = []
         for node, edges in enumerate(self.edges):
             for char, target in edges.items():
-                links.append({"source": node, "target": target})
+                links.append({"source": node, "target": target, "label": char})
         return {"nodes": nodes, "links": links}
 
 def aho_corasick_search(text, patterns):

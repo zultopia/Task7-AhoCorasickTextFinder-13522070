@@ -1,3 +1,10 @@
+from flask import Flask, request, jsonify # type: ignore
+from flask_cors import CORS # type: ignore
+from collections import deque
+
+app = Flask(__name__)
+CORS(app)
+
 class AhoCorasick:
     def __init__(self):
         self.num_nodes = 1
@@ -18,7 +25,6 @@ class AhoCorasick:
         self.output[current_node].append(idx)
 
     def make_automaton(self):
-        from collections import deque
         queue = deque()
         for char in self.edges[0]:
             next_node = self.edges[0][char]
@@ -53,17 +59,19 @@ class AhoCorasick:
                 results.append((pattern_idx, i))
         return results
 
-from flask import Flask, request, jsonify # type: ignore
-from flask_cors import CORS # type: ignore
-
-app = Flask(__name__)
-CORS(app)
+    def get_automaton_data(self):
+        nodes = [{"id": i} for i in range(self.num_nodes)]
+        links = []
+        for node, edges in enumerate(self.edges):
+            for char, target in edges.items():
+                links.append({"source": node, "target": target})
+        return {"nodes": nodes, "links": links}
 
 def aho_corasick_search(text, patterns):
     if not text:
-        return ["Text Kosong. Solusi tidak ada"], {}
+        return ["Text Kosong. Solusi tidak ada"], {}, {"nodes": [], "links": []}
     if not patterns:
-        return ["Tidak ada pattern. Solusi tidak ada"], {}
+        return ["Tidak ada pattern. Solusi tidak ada"], {}, {"nodes": [], "links": []}
 
     automaton = AhoCorasick()
     for idx, pattern in enumerate(patterns):
@@ -84,13 +92,17 @@ def aho_corasick_search(text, patterns):
     result_strings = [f'Pola "{pattern}" ditemukan {count}x, ditemukan pada indeks {highlights[pattern]}.' 
                       for pattern, count in results.items()]
     
-    return result_strings, highlights
+    automaton_data = automaton.get_automaton_data()
+
+    return result_strings, highlights, automaton_data
 
 @app.route('/search', methods=['POST'])
 def search():
     data = request.json
     text = data.get('text', '')
     patterns = data.get('patterns', [])
+
+    result_strings, highlights, automaton_data = aho_corasick_search(text, patterns)
 
     if not text:
         return jsonify({
@@ -102,11 +114,10 @@ def search():
             'error': "Tidak ada pattern. Solusi tidak ada"
         }), 400
 
-    result_strings, highlights = aho_corasick_search(text, patterns)
-
     return jsonify({
         'results': result_strings,
-        'highlights': highlights
+        'highlights': highlights,
+        'automaton': automaton_data
     })
 
 if __name__ == '__main__':

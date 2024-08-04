@@ -1,42 +1,80 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import FileUpload from './components/FileUpload';
-import ResultsDisplay from './components/ResultsDisplay';
-import TextHighlight from './components/TextHighlight';
+import './App.css';
+import ahoLogo from './assets/aho.png'; 
 
-function App() {
+const App = () => {
+    const [file, setFile] = useState(null);
     const [text, setText] = useState("");
     const [results, setResults] = useState([]);
-    const [highlights, setHighlights] = useState([]);
+    const [highlightedText, setHighlightedText] = useState("");
 
-    const onFileLoad = (content) => {
-        const data = JSON.parse(content);
-        setText(data.text);
-        processAhoCorasick(data.text, data.patterns);
+    const handleFileChange = (event) => {
+        setFile(event.target.files[0]);
     };
 
-    const processAhoCorasick = (text, patterns) => {
-        axios.post('http://localhost:5000/search', {
-            text: text,
-            patterns: patterns
-        })
-        .then(response => {
-            setResults(response.data.results);
-            setHighlights(response.data.highlights);
-        })
-        .catch(error => {
-            console.error('There was an error processing the Aho-Corasick search!', error);
-        });
+    const handleSubmit = async () => {
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const content = JSON.parse(e.target.result);
+                setText(content.text);
+
+                try {
+                    const response = await axios.post('http://localhost:5000/search', content);
+                    const { results, highlights } = response.data;
+                    setResults(results);
+
+                    let highlighted = content.text;
+                    const offsets = [];
+                    Object.keys(highlights).forEach(pattern => {
+                        highlights[pattern].forEach(([start, end]) => {
+                            offsets.push({ start, end });
+                        });
+                    });
+
+                    // Sort offsets by start index
+                    offsets.sort((a, b) => a.start - b.start);
+
+                    let offset = 0;
+                    offsets.forEach(({ start, end }) => {
+                        start += offset;
+                        end += offset;
+                        highlighted = highlighted.slice(0, start) +
+                                      `<mark>${highlighted.slice(start, end + 1)}</mark>` +
+                                      highlighted.slice(end + 1);
+                        offset += "<mark></mark>".length;
+                    });
+
+                    setHighlightedText(highlighted);
+                } catch (error) {
+                    console.error("There was an error!", error);
+                }
+            };
+            reader.readAsText(file);
+        }
     };
 
     return (
         <div className="App">
-            <h1>Aho-Corasick Text Finder</h1>
-            <FileUpload onFileLoad={onFileLoad} />
-            <ResultsDisplay results={results} />
-            <TextHighlight text={text} highlights={highlights} />
+            <img src={ahoLogo} alt="Aho-Corasick Logo" className="logo" />
+            <h1 style={{ fontStyle: 'italic' }}>Find Your Pattern in Text</h1>
+            <div className="upload-section">
+                <input type="file" onChange={handleFileChange} />
+                <button className="submit-button" onClick={handleSubmit}>Find</button>
+            </div>
+            <div className="results-section">
+                <h2>Solusi</h2>
+                <div>
+                    {results.map((result, index) => (
+                        <div key={index}>{result}</div>
+                    ))}
+                </div>
+                <h2>Highlight Pola</h2>
+                <div className="highlighted-text" dangerouslySetInnerHTML={{ __html: highlightedText }}></div>
+            </div>
         </div>
     );
-}
+};
 
 export default App;
